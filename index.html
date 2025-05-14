@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>会議室予約システム</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- FullCalendar の CSS を追加 -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.0/main.min.css" rel="stylesheet">
 </head>
 <body>
     <div class="container">
@@ -18,6 +21,7 @@
                      data-room="A"
                      id="roomA">
                 <h2>会議室A</h2>
+                <p class="room-description">広々とした空間で、大人数の会議に最適です。</p>
             </div>
             <div class="room-container">
                 <img src="https://www.creationline.com/tech-blog/cms_x3GWkuX/wp-content/uploads/2024/04/main4.webp"
@@ -26,47 +30,161 @@
                      data-room="B"
                      id="roomB">
                 <h2>会議室B</h2>
+                <p class="room-description">アットホームな雰囲気で、少人数の打ち合わせに最適です。</p>
+            </div>
+            <div class="room-container">
+                <img src="https://www.creationline.com/tech-blog/cms_x3GWkuX/wp-content/uploads/2024/04/main3.webp"
+                     alt="会議室C"
+                     class="room-image"
+                     data-room="C"
+                     id="roomC">
+                <h2>会議室C</h2>
+                <p class="room-description">プロジェクト作業や集中作業に適した静かなスペースです。</p>
             </div>
         </div>
 
-        <div class="reservation-form">
-            <h2>予約フォーム</h2>
-            <form id="reservationForm">
-                <div class="form-group">
-                    <label for="roomSelect">会議室:</label>
-                    <select id="roomSelect" required>
-                        <option value="">選択してください</option>
-                        <option value="A">会議室A</option>
-                        <option value="B">会議室B</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="startDateTime">開始日時:</label>
-                    <input type="datetime-local" id="startDateTime" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="endDateTime">終了日時:</label>
-                    <input type="datetime-local" id="endDateTime" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="reserverName">予約者名:</label>
-                    <input type="text" id="reserverName" required>
-                </div>
-
-                <button type="submit" class="submit-btn">予約する</button>
-            </form>
+        <!-- タブコンテナを追加 -->
+        <div class="tabs-container">
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="reservation-view">予約管理</button>
+                <button class="tab-btn" data-tab="calendar-view">カレンダー表示</button>
+            </div>
         </div>
 
-        <div class="reservations">
-            <h2>予約一覧</h2>
-            <button id="downloadCSV" class="download-btn">予約データをCSVでダウンロード</button>
-            <div id="reservationList"></div>
+        <!-- カレンダー表示のセクション -->
+        <div id="calendar-view" class="tab-content">
+            <div class="calendar-container">
+                <div class="calendar-header">
+                    <select id="calendarRoomFilter">
+                        <option value="all">すべての会議室</option>
+                        <option value="A">会議室A</option>
+                        <option value="B">会議室B</option>
+                        <option value="C">会議室C</option>
+                    </select>
+                </div>
+                <div id="calendar"></div>
+            </div>
+        </div>
+
+        <!-- 予約管理セクション（フォームと予約一覧を統合） -->
+        <div id="reservation-view" class="tab-content active">
+            <div class="integrated-container">
+                <div class="left-panel">
+                    <div class="reservation-form">
+                        <h2><i class="fas fa-calendar-plus"></i> 予約フォーム</h2>
+                        <form id="reservationForm">
+                            <div class="form-group">
+                                <label for="roomSelect">会議室:</label>
+                                <select id="roomSelect" required>
+                                    <option value="">選択してください</option>
+                                    <option value="A">会議室A</option>
+                                    <option value="B">会議室B</option>
+                                    <option value="C">会議室C</option>
+                                </select>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="startDate">開始日:</label>
+                                    <input type="date" id="startDate" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="startTime">開始時刻:</label>
+                                    <select id="startTime" required>
+                                        <option value="">選択してください</option>
+                                        <!-- 時刻オプションはJavaScriptで生成 -->
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="endDate">終了日:</label>
+                                    <input type="date" id="endDate" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="endTime">終了時刻:</label>
+                                    <select id="endTime" required>
+                                        <option value="">選択してください</option>
+                                        <!-- 時刻オプションはJavaScriptで生成 -->
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="reserverName">予約者名:</label>
+                                <input type="text" id="reserverName" placeholder="名前を入力してください" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="purpose">目的:</label>
+                                <input type="text" id="purpose" placeholder="会議の目的や内容を入力してください">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="attendees">参加予定人数:</label>
+                                <input type="number" id="attendees" min="1" max="50" placeholder="人数を入力してください">
+                            </div>
+
+                            <div class="form-group recurring-options">
+                                <label for="isRecurring">繰り返し予約:</label>
+                                <div class="toggle-switch">
+                                    <input type="checkbox" id="isRecurring">
+                                    <label for="isRecurring" class="toggle-label"></label>
+                                </div>
+                            </div>
+
+                            <div id="recurringOptions" class="recurring-settings" style="display: none;">
+                                <div class="form-group">
+                                    <label for="recurringType">繰り返しパターン:</label>
+                                    <select id="recurringType">
+                                        <option value="daily">毎日</option>
+                                        <option value="weekly" selected>毎週</option>
+                                        <option value="biweekly">隔週</option>
+                                        <option value="monthly">毎月</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="recurringEndDate">終了日:</label>
+                                    <input type="date" id="recurringEndDate">
+                                </div>
+                            </div>
+
+                            <button type="submit" class="submit-btn">予約する</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="right-panel">
+                    <div class="reservations">
+                        <h2><i class="fas fa-list-check"></i> 予約一覧</h2>
+                        <div class="filter-controls">
+                            <div class="search-box">
+                                <input type="text" id="reservationSearch" placeholder="予約を検索...">
+                                <i class="fas fa-search search-icon"></i>
+                            </div>
+                            <div class="room-filter">
+                                <select id="reservationRoomFilter">
+                                    <option value="all">すべての会議室</option>
+                                    <option value="A">会議室A</option>
+                                    <option value="B">会議室B</option>
+                                    <option value="C">会議室C</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button id="downloadCSV" class="download-btn">予約データをCSVでダウンロード</button>
+                        <div id="reservationList"></div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
+    <!-- FullCalendar のスクリプトを追加 -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.0/main.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.0/locales/ja.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
